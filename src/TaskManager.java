@@ -70,11 +70,18 @@ public class TaskManager {
             System.out.println("Subtask with ID " + subtask.getId() + " does not exist.");
             return;
         }
+        Subtask storedSubtask = subtasks.get(subtask.getId());
+        if (storedSubtask.getEpicId() != subtask.getEpicId()) {
+            System.out.println("Subtask cannot be moved between epics.");
+            return;
+        }
+        subtasks.put(subtask.getId(), subtask);
         Epic epic = epics.get(subtask.getEpicId());
         if (epic != null) {
-            epic.updateSubtask(subtask);
+            epic.updateSubtask(subtask); // Заменяем подзадачу и обновляем статус эпика
         }
     }
+
 
     public void deleteTask(int id) {
         tasks.remove(id);
