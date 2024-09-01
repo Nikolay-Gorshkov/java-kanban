@@ -22,40 +22,26 @@ public class Epic extends Task {
         updateStatus();
     }
 
-
+    // Обновление статуса эпика
     public void updateStatus() {
-        //System.out.println("Статус эпика перед обновлением: " + getStatus());
-
         boolean hasNew = false;
-        boolean hasInProgress = false;
         boolean hasDone = false;
 
         for (Subtask subtask : subtasks) {
-            //System.out.println("Статус подзадачи: " + subtask.getStatus());
-            if (subtask.getStatus() == Status.IN_PROGRESS) {
-                hasInProgress = true;
-            }
             if (subtask.getStatus() == Status.NEW) {
                 hasNew = true;
-            }
-            if (subtask.getStatus() == Status.DONE) {
+            } else if (subtask.getStatus() == Status.DONE) {
                 hasDone = true;
             }
         }
 
-        if (subtasks.isEmpty()) {
+        if (subtasks.isEmpty() || hasNew) {
             setStatus(Status.NEW);
-        } else if (hasInProgress) {
-            setStatus(Status.IN_PROGRESS);
-        } else if (hasDone && (hasNew || hasInProgress)) {
-            setStatus(Status.IN_PROGRESS);
-        } else if (hasDone && !hasNew && !hasInProgress) {
+        } else if (hasDone && !hasNew) {
             setStatus(Status.DONE);
-        } else if (hasNew) {
-            setStatus(Status.NEW);
+        } else {
+            setStatus(Status.IN_PROGRESS);
         }
-
-        //System.out.println("Статус эпика после обновления: " + getStatus());
     }
 
     // Получение списка подзадач
@@ -86,3 +72,4 @@ public class Epic extends Task {
         }
     }
 }
+

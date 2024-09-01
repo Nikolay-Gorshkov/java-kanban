@@ -70,13 +70,10 @@ public class TaskManager {
             System.out.println("Subtask with ID " + subtask.getId() + " does not exist.");
             return;
         }
-        Subtask storedSubtask = subtasks.get(subtask.getId());
-        if (storedSubtask.getEpicId() != subtask.getEpicId()) {
-            System.out.println("Subtask cannot be moved between epics.");
-            return;
+        Epic epic = epics.get(subtask.getEpicId());
+        if (epic != null) {
+            epic.updateSubtask(subtask);
         }
-        subtasks.put(subtask.getId(), subtask);
-        epics.get(subtask.getEpicId()).updateStatus();
     }
 
     public void deleteTask(int id) {
@@ -97,8 +94,7 @@ public class TaskManager {
         if (subtask != null) {
             Epic epic = epics.get(subtask.getEpicId());
             if (epic != null) {
-                epic.getSubtasks().remove(subtask);
-                epic.updateStatus();
+                epic.removeSubtask(subtask);
             }
         }
     }
@@ -129,8 +125,8 @@ public class TaskManager {
     public void deleteAllSubtasks() {
         subtasks.clear();
         for (Epic epic : epics.values()) {
-            epic.getSubtasks().clear();
-            epic.updateStatus();
+            epic.clearSubtasks();
         }
     }
 }
+
