@@ -1,3 +1,9 @@
+package Service;
+
+import Model.Epic;
+import Model.Subtask;
+import Model.Task;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,17 +51,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
         return epic;
     }
-    /*
-    @Override
-    public void addSubtask(Subtask subtask) {
-        if (!epics.containsKey(subtask.getEpicId())) {
-            throw new IllegalArgumentException("Epic not found");
-        }
-        int id = generateId();
-        subtask.setId(id);
-        subtasks.put(id, subtask);
-    }
-    */
+
     @Override
     public void addSubtask(Subtask subtask) {
         Epic epic = epics.get(subtask.getEpicId());
@@ -65,7 +61,7 @@ public class InMemoryTaskManager implements TaskManager {
             subtasks.put(id, subtask);
             epic.addSubtask(subtask);  // Добавляем подзадачу в эпик
         } else {
-            throw new IllegalArgumentException("Epic not found");
+            throw new IllegalArgumentException("Model.Epic not found");
         }
     }
 
