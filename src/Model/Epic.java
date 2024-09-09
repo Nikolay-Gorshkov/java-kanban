@@ -14,12 +14,21 @@ public class Epic extends Task {
         super(id, title, description, status);
     }
 
+    public Epic(String title, String description) {
+        super(title, description);  // Если Epic наследуется от Task
+        // Либо просто присваивайте эти значения напрямую
+        this.setTitle(title);
+        this.setDescription(description);
+    }
+
+
     public List<Subtask> getSubtasks() {
         return subtasks;
     }
 
     public void addSubtask(Subtask subtask) {
         subtasks.add(subtask);
+        updateStatus();
     }
 
     public void updateSubtask(Subtask subtask) {
@@ -65,6 +74,7 @@ public class Epic extends Task {
     // Метод для удаления единичной подзадачи
     public void removeSubtask(int subtaskId) {
         subtasks.removeIf(subtask -> subtask.getId() == subtaskId);
+        updateStatus();
     }
 
 

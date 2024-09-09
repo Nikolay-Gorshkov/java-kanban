@@ -95,4 +95,81 @@ public class InMemoryTaskManager implements TaskManager {
     public List<Task> getHistory() {
         return historyManager.getHistory();
     }
+
+    @Override
+    public void deleteTask(int id) {
+        tasks.remove(id);
+    }
+
+    @Override
+    public void deleteEpic(int id) {
+        Epic epic = epics.remove(id);
+        if (epic != null) {
+            // Удаляем все подзадачи, связанные с эпиком
+            for (Subtask subtask : epic.getSubtasks()) {
+                subtasks.remove(subtask.getId());
+            }
+        }
+    }
+
+    @Override
+    public void deleteSubtask(int id) {
+        Subtask subtask = subtasks.remove(id);  // Удаляем подзадачу по id
+        if (subtask != null) {
+            // Удаляем подзадачу из соответствующего эпика
+            Epic epic = epics.get(subtask.getEpicId());
+            if (epic != null) {
+                epic.removeSubtask(subtask.getId());  // Передаем объект subtask
+            }
+        }
+    }
+
+
+    @Override
+    public void deleteAllTasks() {
+        tasks.clear();
+    }
+
+    @Override
+    public void deleteAllEpics() {
+        epics.clear();
+        subtasks.clear(); // Также очищаем подзадачи
+    }
+
+    @Override
+    public void deleteAllSubtasks() {
+        subtasks.clear();
+        // Удаляем все подзадачи из эпиков
+        for (Epic epic : epics.values()) {
+            epic.clearSubtasks();
+        }
+    }
+
+    @Override
+    public List<Subtask> getSubtasksByEpicId(int epicId) {
+        Epic epic = epics.get(epicId);
+        if (epic == null) {
+            return new ArrayList<>(); // Возвращаем пустой список, если эпик не найден
+        }
+        return new ArrayList<>(epic.getSubtasks());
+    }
+
+    @Override
+    public List<Epic> getAllEpics() {
+        // Возвращаем все эпики в виде списка
+        return new ArrayList<>(epics.values());
+    }
+
+    @Override
+    public List<Subtask> getAllSubtasks() {
+        // Возвращаем все подзадачи в виде списка
+        return new ArrayList<>(subtasks.values());
+    }
+
+    @Override
+    public List<Task> getAllTasks() {
+        return new ArrayList<>(tasks.values());
+    }
+
+
 }

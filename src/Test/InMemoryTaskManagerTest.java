@@ -88,4 +88,146 @@ class InMemoryTaskManagerTest {
         assertEquals(1, history.size(), "История должна содержать одну задачу.");
         assertEquals(task, history.get(0), "Задача в истории не совпадает.");
     }
+
+    // Тест на удаление задачи
+    @Test
+    public void testDeleteTask() {
+        Task task = new Task("Тестовая задача", "Описание задачи", Status.NEW);
+        taskManager.addTask(task);
+        int taskId = task.getId();
+
+        // Удаляем задачу
+        taskManager.deleteTask(taskId);
+
+        // Проверяем, что задача удалена
+        assertNull(taskManager.getTask(taskId), "Задача должна быть удалена");
+
+    }
+
+    // Тест на удаление эпика
+    @Test
+    public void testDeleteEpic() {
+        Epic epic = new Epic("Тестовый эпик", "Описание эпика");
+        taskManager.addEpic(epic);
+        int epicId = epic.getId();
+
+        // Удаляем эпик
+        taskManager.deleteEpic(epicId);
+
+        // Проверяем, что эпик удален
+        assertNull(taskManager.getEpic(epicId), "Эпик должен быть удален");
+
+    }
+
+    // Тест на удаление подзадачи
+    @Test
+    public void testDeleteSubtask() {
+        Epic epic = new Epic("Тестовый эпик", "Описание эпика");
+        taskManager.addEpic(epic);
+
+        Subtask subtask = new Subtask("Тестовая подзадача", "Описание подзадачи", Status.NEW, epic.getId());
+        taskManager.addSubtask(subtask);
+        int subtaskId = subtask.getId();
+
+        // Удаляем подзадачу
+        taskManager.deleteSubtask(subtaskId);
+
+        // Проверяем, что подзадача удалена
+        assertNull(taskManager.getSubtask(subtaskId), "Подзадача должна быть удалена");
+
+    }
+
+    // Тест на удаление всех задач
+    @Test
+    public void testDeleteAllTasks() {
+        Task task1 = new Task("Тестовая задача 1", "Описание задачи 1", Status.NEW);
+        Task task2 = new Task("Тестовая задача 2", "Описание задачи 2", Status.NEW);
+        taskManager.addTask(task1);
+        taskManager.addTask(task2);
+
+        // Удаляем все задачи
+        taskManager.deleteAllTasks();
+
+        // Проверяем, что все задачи удалены
+        assertTrue(taskManager.getAllTasks().isEmpty(), "Все задачи должны быть удалены");
+    }
+
+    // Тест на удаление всех эпиков и связанных с ними подзадач
+    @Test
+    public void testDeleteAllEpics() {
+        Epic epic1 = new Epic("Тестовый эпик 1", "Описание эпика 1");
+        Epic epic2 = new Epic("Тестовый эпик 2", "Описание эпика 2");
+        taskManager.addEpic(epic1);
+        taskManager.addEpic(epic2);
+
+        Subtask subtask1 = new Subtask("Тестовая подзадача 1", "Описание подзадачи 1", Status.NEW, epic1.getId());
+        Subtask subtask2 = new Subtask("Тестовая подзадача 2", "Описание подзадачи 2", Status.NEW, epic2.getId());
+        taskManager.addSubtask(subtask1);
+        taskManager.addSubtask(subtask2);
+
+        // Удаляем все эпики
+        taskManager.deleteAllEpics();
+
+        // Проверяем, что все эпики и подзадачи удалены
+        assertTrue(taskManager.getAllEpics().isEmpty(), "Все эпики должны быть удалены");
+        assertTrue(taskManager.getAllSubtasks().isEmpty(), "Все подзадачи должны быть удалены");
+    }
+
+    // Тест на удаление всех подзадач
+    @Test
+    public void testDeleteAllSubtasks() {
+        Epic epic = new Epic("Тестовый эпик", "Описание эпика");
+        taskManager.addEpic(epic);
+
+        Subtask subtask1 = new Subtask("Тестовая подзадача 1", "Описание подзадачи 1", Status.NEW, epic.getId());
+        Subtask subtask2 = new Subtask("Тестовая подзадача 2", "Описание подзадачи 2", Status.NEW, epic.getId());
+        taskManager.addSubtask(subtask1);
+        taskManager.addSubtask(subtask2);
+
+        // Удаляем все подзадачи
+        taskManager.deleteAllSubtasks();
+
+        // Проверяем, что все подзадачи удалены
+        assertTrue(taskManager.getAllSubtasks().isEmpty(), "Все подзадачи должны быть удалены");
+    }
+
+    // Тест для метода getSubtasksByEpicId
+    @Test
+    public void testGetSubtasksByEpicId() {
+        // Создаем эпик
+        Epic epic = new Epic("Тестовый эпик", "Описание эпика");
+        taskManager.addEpic(epic);
+        int epicId = epic.getId();
+
+        // Создаем подзадачи и добавляем их в эпик
+        Subtask subtask1 = new Subtask("Подзадача 1", "Описание 1", Status.NEW, epicId);
+        Subtask subtask2 = new Subtask("Подзадача 2", "Описание 2", Status.NEW, epicId);
+        taskManager.addSubtask(subtask1);
+        taskManager.addSubtask(subtask2);
+
+        // Получаем список подзадач по ID эпика
+        List<Subtask> subtasks = taskManager.getSubtasksByEpicId(epicId);
+
+        // Проверяем, что список подзадач не пустой и содержит нужные подзадачи
+        assertNotNull(subtasks, "Список подзадач не должен быть null");
+        assertEquals(2, subtasks.size(), "Список должен содержать 2 подзадачи");
+        assertTrue(subtasks.contains(subtask1), "Список должен содержать подзадачу 1");
+        assertTrue(subtasks.contains(subtask2), "Список должен содержать подзадачу 2");
+    }
+
+    // Дополнительный тест: Проверка для эпика без подзадач
+    @Test
+    public void testGetSubtasksByEpicIdWhenNoSubtasks() {
+        // Создаем эпик без подзадач
+        Epic epic = new Epic("Тестовый эпик без подзадач", "Описание эпика");
+        taskManager.addEpic(epic);
+        int epicId = epic.getId();
+
+        // Получаем список подзадач по ID эпика
+        List<Subtask> subtasks = taskManager.getSubtasksByEpicId(epicId);
+
+        // Проверяем, что список пустой
+        assertNotNull(subtasks, "Список подзадач не должен быть null");
+        assertTrue(subtasks.isEmpty(), "Список подзадач должен быть пустым");
+    }
 }

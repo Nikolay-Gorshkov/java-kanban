@@ -23,6 +23,11 @@ public class Task {
         this.status = status;
     }
 
+    public Task(String title, String description) {
+        this.title = title;
+        this.description = description;
+    }
+
     // Getters and setters
     public int getId() {
         return id;
