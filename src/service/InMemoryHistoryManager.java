@@ -19,7 +19,9 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     private Node head; // Первый элемент списка
+
     private Node tail; // Последний элемент списка
+
     private final Map<Integer, Node> nodeMap = new HashMap<>(); // Отображение id задачи на узел списка
 
     // Метод для добавления задачи в конец списка
