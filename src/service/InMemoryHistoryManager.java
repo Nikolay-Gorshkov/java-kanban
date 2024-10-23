@@ -46,14 +46,21 @@ public class InMemoryHistoryManager implements HistoryManager {
             prevNode.next = nextNode;
         } else {
             head = nextNode;
+            if (head != null) {
+                head.prev = null; // Обнуляем ссылку prev у нового head
+            }
         }
 
         if (nextNode != null) {
             nextNode.prev = prevNode;
         } else {
             tail = prevNode;
+            if (tail != null) {
+                tail.next = null; // Обнуляем ссылку next у нового tail
+            }
         }
     }
+
 
     @Override
     public void add(Task task) {
