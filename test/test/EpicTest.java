@@ -1,10 +1,10 @@
-package Test;
+package test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import Model.Epic;
-import Model.Status;
-import Model.Subtask;
+import model.Epic;
+import model.Status;
+import model.Subtask;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

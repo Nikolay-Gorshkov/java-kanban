@@ -1,11 +1,11 @@
-package Test;
+package test;
 
-import Model.Epic;
-import Model.Status;
-import Model.Subtask;
-import Model.Task;
-import Service.InMemoryTaskManager;
-import Service.TaskManager;
+import model.Epic;
+import model.Status;
+import model.Subtask;
+import model.Task;
+import service.InMemoryTaskManager;
+import service.TaskManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -230,4 +230,74 @@ class InMemoryTaskManagerTest {
         assertNotNull(subtasks, "Список подзадач не должен быть null");
         assertTrue(subtasks.isEmpty(), "Список подзадач должен быть пустым");
     }
+
+    @Test
+    void shouldRemoveSubtaskFromEpicWhenDeleted() {
+        Epic epic = new Epic("Epic", "Description");
+        taskManager.addEpic(epic);
+
+        Subtask subtask = new Subtask("Subtask", "Description", Status.NEW, epic.getId());
+        taskManager.addSubtask(subtask);
+        int subtaskId = subtask.getId();
+
+        taskManager.deleteSubtask(subtaskId);
+
+        Epic updatedEpic = taskManager.getEpic(epic.getId());
+        List<Subtask> epicSubtasks = updatedEpic.getSubtasks();
+
+        assertFalse(epicSubtasks.contains(subtask), "Epic should not contain the deleted subtask.");
+    }
+
+    @Test
+    void deletedSubtaskShouldNotRetainOldId() {
+        Epic epic = new Epic("Epic", "Description");
+        taskManager.addEpic(epic);
+        int epicId = epic.getId();
+
+        Subtask subtask = new Subtask("Subtask", "Description", Status.NEW, epicId);
+        taskManager.addSubtask(subtask);
+        int subtaskId = subtask.getId();
+
+        taskManager.deleteSubtask(subtaskId);
+
+        assertNull(taskManager.getSubtask(subtaskId), "Deleted subtask should not be retrievable.");
+    }
+
+
+    // Тесты из части 4:
+    @Test
+    void changingTaskIdShouldNotAffectManager() {
+        Task task = new Task("Task", "Description", Status.NEW);
+        taskManager.addTask(task);
+        int originalId = task.getId();
+
+        task.setId(999);
+
+
+        Task retrievedTask = taskManager.getTask(originalId);
+        assertEquals(task, retrievedTask, "Task should still be retrievable with the original id.");
+
+        retrievedTask = taskManager.getTask(999);
+        assertNull(retrievedTask, "Task with new id should not exist in the manager.");
+    }
+
+    @Test
+    void changingSubtaskEpicIdShouldNotMoveSubtask() {
+        Epic epic1 = new Epic("Epic 1", "Description");
+        Epic epic2 = new Epic("Epic 2", "Description");
+        taskManager.addEpic(epic1);
+        taskManager.addEpic(epic2);
+
+        Subtask subtask = new Subtask("Subtask", "Description", Status.NEW, epic1.getId());
+        taskManager.addSubtask(subtask);
+
+        subtask.setEpicId(epic2.getId());
+
+        List<Subtask> epic1Subtasks = taskManager.getSubtasksByEpicId(epic1.getId());
+        List<Subtask> epic2Subtasks = taskManager.getSubtasksByEpicId(epic2.getId());
+
+        assertTrue(epic1Subtasks.contains(subtask), "Subtask should still be in epic1.");
+        assertFalse(epic2Subtasks.contains(subtask), "Subtask should not be in epic2.");
+    }
+
 }
