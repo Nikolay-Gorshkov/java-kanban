@@ -5,8 +5,8 @@ import model.Task;
 import service.FileBackedTaskManager;
 import java.io.File;
 
-public static void main(String[] args) {
-    {
+public class Main {
+    public static void main(String[] args) {
         File file = new File("tasks.csv");
 
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
