@@ -11,7 +11,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         this.file = file;
     }
 
-    protected void save() {
+    // Метод используется только внутри класса, поэтому делаем его приватным
+    private void save() {
         try (Writer fileWriter = new FileWriter(file)) {
             fileWriter.write("id,type,name,status,description,epic\n");
 
@@ -66,6 +67,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String name = fields[2];
         Status status = Status.valueOf(fields[3]);
         String description = fields[4];
+
         switch (type) {
             case TASK:
                 return new Task(id, name, description, status);
@@ -75,7 +77,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 int epicId = Integer.parseInt(fields[5]);
                 return new Subtask(id, name, description, status, epicId);
             default:
-                return null;
+                // Бросаем исключение с конкретным сообщением вместо возврата null
+                throw new IllegalArgumentException("Неизвестный тип задачи: " + type);
         }
     }
 
@@ -110,6 +113,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             while ((line = reader.readLine()) != null && !line.isEmpty()) {
                 taskLines.add(line);
             }
+
+            int maxId = 0; // Инициализируем переменную для хранения максимального id
+
+            // Сначала проходим по всем задачам и находим максимальный id
             for (String taskLine : taskLines) {
                 Task task = taskFromString(taskLine);
                 int id = task.getId();
@@ -120,16 +127,22 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 } else {
                     manager.tasks.put(id, task);
                 }
-                if (id > manager.idCounter) {
-                    manager.idCounter = id;
+                if (id > maxId) {
+                    maxId = id;
                 }
             }
+
+            // Устанавливаем idCounter один раз после определения максимального id
+            manager.idCounter = maxId;
+
+            // Восстанавливаем подзадачи в эпиках
             for (Subtask subtask : manager.subtasks.values()) {
                 Epic epic = manager.epics.get(subtask.getEpicId());
                 if (epic != null) {
                     epic.addSubtask(subtask);
                 }
             }
+
             String historyLine = reader.readLine();
             if (historyLine != null && !historyLine.isEmpty()) {
                 List<Integer> historyIds = parseHistory(historyLine);
@@ -149,6 +162,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return manager;
     }
 
+    // Переопределяем методы, чтобы сохранять данные после изменений
     @Override
     public void addTask(Task task) {
         super.addTask(task);
