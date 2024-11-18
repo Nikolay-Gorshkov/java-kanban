@@ -155,7 +155,7 @@ public class InMemoryTaskManager implements TaskManager {
             Epic epic = epics.get(subtask.getEpicId());
             if (epic != null) {
                 epic.removeSubtask(subtask.getId());
-                epic.recalculateTimeAttributes(); // Пересчитываем время эпика
+                epic.recalculateTimeAttributes();
             }
         }
     }
@@ -257,8 +257,9 @@ public class InMemoryTaskManager implements TaskManager {
             if (isTaskTimeOverlap(task)) {
                 throw new IllegalArgumentException("Задача пересекается по времени с существующей задачей");
             }
+            Task oldTask = tasks.get(task.getId());
+            prioritizedTasks.remove(oldTask);
             tasks.put(task.getId(), task);
-            prioritizedTasks.remove(task);
             if (task.getStartTime() != null) {
                 prioritizedTasks.add(task);
             }
@@ -267,19 +268,23 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
+
     public void updateSubtask(Subtask subtask) {
         if (subtasks.containsKey(subtask.getId())) {
             if (isTaskTimeOverlap(subtask)) {
                 throw new IllegalArgumentException("Подзадача пересекается по времени с существующей задачей");
             }
+            Subtask oldSubtask = subtasks.get(subtask.getId());
+            prioritizedTasks.remove(oldSubtask);
             subtasks.put(subtask.getId(), subtask);
-            prioritizedTasks.remove(subtask);
             if (subtask.getStartTime() != null) {
                 prioritizedTasks.add(subtask);
+
             }
             Epic epic = epics.get(subtask.getEpicId());
             if (epic != null) {
                 epic.updateSubtask(subtask);
+                epic.recalculateTimeAttributes();
             } else {
                 throw new IllegalArgumentException("Эпик не найден");
             }
@@ -287,6 +292,7 @@ public class InMemoryTaskManager implements TaskManager {
             throw new IllegalArgumentException("Подзадача с таким ID не найдена");
         }
     }
+
 
     // Метод для обновления эпика
     public void updateEpic(Epic epic) {
