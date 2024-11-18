@@ -155,6 +155,7 @@ public class InMemoryTaskManager implements TaskManager {
             Epic epic = epics.get(subtask.getEpicId());
             if (epic != null) {
                 epic.removeSubtask(subtask.getId());
+                epic.recalculateTimeAttributes(); // Пересчитываем время эпика
             }
         }
     }

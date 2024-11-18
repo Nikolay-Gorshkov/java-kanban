@@ -8,7 +8,9 @@ import java.util.Objects;
 
 public class Epic extends Task {
     private List<Subtask> subtasks = new ArrayList<>();
+    private LocalDateTime endTime;
 
+    // Конструкторы
     public Epic(String title, String description) {
         super(title, description);
     }
@@ -21,39 +23,22 @@ public class Epic extends Task {
         super(id, title, description, status);
     }
 
-    public List<Subtask> getSubtasks() {
-        return subtasks;
-    }
-
-    @Override
-    public Duration getDuration() {
-        return subtasks.stream()
-                .map(Subtask::getDuration)
-                .filter(Objects::nonNull)
-                .reduce(Duration.ZERO, Duration::plus);
-    }
-
-    @Override
-    public LocalDateTime getStartTime() {
-        return subtasks.stream()
-                .map(Subtask::getStartTime)
-                .filter(Objects::nonNull)
-                .min(LocalDateTime::compareTo)
-                .orElse(null);
-    }
-
+    // Геттеры и сеттеры для endTime
     @Override
     public LocalDateTime getEndTime() {
-        return subtasks.stream()
-                .map(Subtask::getEndTime)
-                .filter(Objects::nonNull)
-                .max(LocalDateTime::compareTo)
-                .orElse(null);
+        return endTime;
+    }
+
+    // Остальные методы
+
+    public List<Subtask> getSubtasks() {
+        return subtasks;
     }
 
     public void addSubtask(Subtask subtask) {
         subtasks.add(subtask);
         updateStatus();
+        recalculateTimeAttributes(); // Пересчитываем время после добавления подзадачи
     }
 
     public void updateSubtask(Subtask subtask) {
@@ -64,9 +49,62 @@ public class Epic extends Task {
             }
         }
         updateStatus();
+        recalculateTimeAttributes(); // Пересчитываем время после обновления подзадачи
     }
 
-    // Обновление статуса эпика
+    public void removeSubtask(int subtaskId) {
+        subtasks.removeIf(subtask -> subtask.getId() == subtaskId);
+        updateStatus();
+        recalculateTimeAttributes(); // Пересчитываем время после удаления подзадачи
+    }
+
+    public void clearSubtasks() {
+        subtasks.clear();
+        updateStatus();
+        recalculateTimeAttributes();
+    }
+
+    @Override
+    public Duration getDuration() {
+        return duration;
+    }
+
+    @Override
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    // Метод для пересчёта временных атрибутов
+    public void recalculateTimeAttributes() {
+        this.startTime = calculateStartTime();
+        this.endTime = calculateEndTime();
+        this.duration = calculateDuration();
+    }
+
+    private LocalDateTime calculateStartTime() {
+        return subtasks.stream()
+                .map(Subtask::getStartTime)
+                .filter(Objects::nonNull)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+    }
+
+    private LocalDateTime calculateEndTime() {
+        return subtasks.stream()
+                .map(Subtask::getEndTime)
+                .filter(Objects::nonNull)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+    }
+
+    private Duration calculateDuration() {
+        return subtasks.stream()
+                .map(Subtask::getDuration)
+                .filter(Objects::nonNull)
+                .reduce(Duration.ZERO, Duration::plus);
+    }
+
+    // Метод обновления статуса эпика
     public void updateStatus() {
         if (subtasks.isEmpty()) {
             setStatus(Status.NEW);
@@ -83,16 +121,6 @@ public class Epic extends Task {
         } else {
             setStatus(Status.IN_PROGRESS);
         }
-    }
-
-    public void removeSubtask(int subtaskId) {
-        subtasks.removeIf(subtask -> subtask.getId() == subtaskId);
-        updateStatus();
-    }
-
-    public void clearSubtasks() {
-        subtasks.clear();
-        updateStatus();
     }
 
     @Override
@@ -120,11 +148,15 @@ public class Epic extends Task {
                 Objects.equals(getTitle(), epic.getTitle()) &&
                 Objects.equals(getDescription(), epic.getDescription()) &&
                 getStatus() == epic.getStatus() &&
-                Objects.equals(subtasks, epic.subtasks);
+                Objects.equals(subtasks, epic.subtasks) &&
+                Objects.equals(getStartTime(), epic.getStartTime()) &&
+                Objects.equals(getDuration(), epic.getDuration()) &&
+                Objects.equals(getEndTime(), epic.getEndTime());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getTitle(), getDescription(), getStatus(), subtasks);
+        return Objects.hash(getId(), getTitle(), getDescription(), getStatus(), subtasks, getStartTime(), getDuration(), getEndTime());
     }
 }
+
