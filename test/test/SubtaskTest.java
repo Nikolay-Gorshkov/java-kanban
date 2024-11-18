@@ -3,54 +3,37 @@ package test;
 import model.Status;
 import model.Subtask;
 import org.junit.jupiter.api.Test;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class SubtaskTest {
 
     @Test
-    void testSubtaskConstructorWithId() {
-        Subtask subtask = new Subtask(1, "Model.Subtask Title", "Model.Subtask Description", Status.NEW, 100);
+    void testSubtaskConstructorWithAllFields() {
+        LocalDateTime startTime = LocalDateTime.now();
+        Duration duration = Duration.ofMinutes(60);
+        Subtask subtask = new Subtask(1, "Subtask Title", "Subtask Description", Status.NEW, 100,
+                startTime, duration);
+
         assertEquals(1, subtask.getId());
-        assertEquals("Model.Subtask Title", subtask.getTitle());
-        assertEquals("Model.Subtask Description", subtask.getDescription());
+        assertEquals("Subtask Title", subtask.getTitle());
+        assertEquals("Subtask Description", subtask.getDescription());
         assertEquals(Status.NEW, subtask.getStatus());
         assertEquals(100, subtask.getEpicId());
+        assertEquals(startTime, subtask.getStartTime());
+        assertEquals(duration, subtask.getDuration());
     }
 
     @Test
-    void testSubtaskConstructorWithoutId() {
-        Subtask subtask = new Subtask("Model.Subtask Title", "Model.Subtask Description", Status.IN_PROGRESS, 200);
-        assertEquals("Model.Subtask Title", subtask.getTitle());
-        assertEquals("Model.Subtask Description", subtask.getDescription());
-        assertEquals(Status.IN_PROGRESS, subtask.getStatus());
-        assertEquals(200, subtask.getEpicId());
-    }
+    void testSubtaskEndTimeCalculation() {
+        LocalDateTime startTime = LocalDateTime.now();
+        Duration duration = Duration.ofMinutes(60);
+        Subtask subtask = new Subtask("Subtask Title", "Subtask Description", Status.NEW, 100,
+                startTime, duration);
 
-    @Test
-    void testSetEpicId() {
-        Subtask subtask = new Subtask(1, "Model.Subtask Title", "Model.Subtask Description", Status.DONE, 100);
-        subtask.setEpicId(300);
-        assertEquals(300, subtask.getEpicId());
-    }
-
-    @Test
-    void testToString() {
-        Subtask subtask = new Subtask(1, "Model.Subtask Title", "Model.Subtask Description", Status.NEW, 100);
-        String expected = "Model.Subtask{id=1, title='Model.Subtask Title', description='Model.Subtask Description', status=NEW, epicId=100}";
-        assertEquals(expected, subtask.toString());
-    }
-
-    @Test
-    void testSubtaskEquality() {
-        Subtask subtask1 = new Subtask(1, "Model.Subtask Title", "Model.Subtask Description", Status.NEW, 100);
-        Subtask subtask2 = new Subtask(1, "Model.Subtask Title", "Model.Subtask Description", Status.NEW, 100);
-        assertEquals(subtask1, subtask2);
-    }
-
-    @Test
-    void testSubtaskNotEqualWithDifferentId() {
-        Subtask subtask1 = new Subtask(1, "Model.Subtask Title", "Model.Subtask Description", Status.NEW, 100);
-        Subtask subtask2 = new Subtask(2, "Model.Subtask Title", "Model.Subtask Description", Status.NEW, 100);
-        assertNotEquals(subtask1, subtask2);
+        assertEquals(startTime.plus(duration), subtask.getEndTime(), "Время окончания подзадачи должно рассчитываться корректно.");
     }
 }

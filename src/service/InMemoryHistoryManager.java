@@ -5,7 +5,6 @@ import model.Task;
 import java.util.*;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    // Узел двусвязного списка
     private static class Node {
         public Task task;
         public Node prev;
@@ -18,13 +17,10 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
     }
 
-    private Node head; // Первый элемент списка
+    private Node head;
+    private Node tail;
+    private final Map<Integer, Node> nodeMap = new HashMap<>();
 
-    private Node tail; // Последний элемент списка
-
-    private final Map<Integer, Node> nodeMap = new HashMap<>(); // Отображение id задачи на узел списка
-
-    // Метод для добавления задачи в конец списка
     private void linkLast(Task task) {
         final Node oldTail = tail;
         final Node newNode = new Node(oldTail, task, null);
@@ -37,7 +33,6 @@ public class InMemoryHistoryManager implements HistoryManager {
         nodeMap.put(task.getId(), newNode);
     }
 
-    // Метод для удаления узла из списка
     private void removeNode(Node node) {
         final Node prevNode = node.prev;
         final Node nextNode = node.next;
@@ -47,7 +42,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         } else {
             head = nextNode;
             if (head != null) {
-                head.prev = null; // Обнуляем ссылку prev у нового head
+                head.prev = null;
             }
         }
 
@@ -56,19 +51,16 @@ public class InMemoryHistoryManager implements HistoryManager {
         } else {
             tail = prevNode;
             if (tail != null) {
-                tail.next = null; // Обнуляем ссылку next у нового tail
+                tail.next = null;
             }
         }
     }
 
-
     @Override
     public void add(Task task) {
-        // Удаляем существующую задачу из истории, если она есть
         if (nodeMap.containsKey(task.getId())) {
             remove(task.getId());
         }
-        // Добавляем задачу в конец списка
         linkLast(task);
     }
 

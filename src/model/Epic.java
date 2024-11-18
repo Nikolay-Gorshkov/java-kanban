@@ -1,10 +1,17 @@
 package model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Epic extends Task {
     private List<Subtask> subtasks = new ArrayList<>();
+
+    public Epic(String title, String description) {
+        super(title, description);
+    }
 
     public Epic(String title, String description, Status status) {
         super(title, description, status);
@@ -14,16 +21,34 @@ public class Epic extends Task {
         super(id, title, description, status);
     }
 
-    public Epic(String title, String description) {
-        super(title, description);  // Если Epic наследуется от Task
-        // Либо просто присваивайте эти значения напрямую
-        this.setTitle(title);
-        this.setDescription(description);
-    }
-
-
     public List<Subtask> getSubtasks() {
         return subtasks;
+    }
+
+    @Override
+    public Duration getDuration() {
+        return subtasks.stream()
+                .map(Subtask::getDuration)
+                .filter(Objects::nonNull)
+                .reduce(Duration.ZERO, Duration::plus);
+    }
+
+    @Override
+    public LocalDateTime getStartTime() {
+        return subtasks.stream()
+                .map(Subtask::getStartTime)
+                .filter(Objects::nonNull)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        return subtasks.stream()
+                .map(Subtask::getEndTime)
+                .filter(Objects::nonNull)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
     }
 
     public void addSubtask(Subtask subtask) {
@@ -38,27 +63,18 @@ public class Epic extends Task {
                 break;
             }
         }
+        updateStatus();
     }
 
     // Обновление статуса эпика
-
     public void updateStatus() {
         if (subtasks.isEmpty()) {
-            setStatus(Status.NEW);  // Если нет подзадач, статус эпика — NEW
+            setStatus(Status.NEW);
             return;
         }
 
-        boolean allDone = true;
-        boolean allNew = true;
-
-        for (Subtask subtask : subtasks) {
-            if (subtask.getStatus() != Status.DONE) {
-                allDone = false;  // Если хотя бы одна подзадача не DONE, то эпик не DONE
-            }
-            if (subtask.getStatus() != Status.NEW) {
-                allNew = false;  // Если хотя бы одна подзадача не NEW, то эпик не NEW
-            }
-        }
+        boolean allDone = subtasks.stream().allMatch(s -> s.getStatus() == Status.DONE);
+        boolean allNew = subtasks.stream().allMatch(s -> s.getStatus() == Status.NEW);
 
         if (allDone) {
             setStatus(Status.DONE);
@@ -69,34 +85,46 @@ public class Epic extends Task {
         }
     }
 
-
-
-    // Метод для удаления единичной подзадачи
     public void removeSubtask(int subtaskId) {
         subtasks.removeIf(subtask -> subtask.getId() == subtaskId);
         updateStatus();
     }
 
-
-
-    // Метод для очистки всех подзадач
     public void clearSubtasks() {
         subtasks.clear();
         updateStatus();
     }
 
-    public void changeSubtaskStatus(int subtaskId, Status newStatus) {
-        for (Subtask subtask : subtasks) {
-            if (subtask.getId() == subtaskId) {
-                subtask.setStatus(newStatus);
-                break;
-            }
-        }
-        updateStatus();  // Обновляем статус эпика
+    @Override
+    public String toString() {
+        return "Epic{" +
+                "id=" + getId() +
+                ", title='" + getTitle() + '\'' +
+                ", description='" + getDescription() + '\'' +
+                ", status=" + getStatus() +
+                ", subtasks=" + subtasks +
+                ", startTime=" + getStartTime() +
+                ", duration=" + getDuration() +
+                ", endTime=" + getEndTime() +
+                '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
+        Epic epic = (Epic) o;
 
+        return getId() == epic.getId() &&
+                Objects.equals(getTitle(), epic.getTitle()) &&
+                Objects.equals(getDescription(), epic.getDescription()) &&
+                getStatus() == epic.getStatus() &&
+                Objects.equals(subtasks, epic.subtasks);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), getTitle(), getDescription(), getStatus(), subtasks);
+    }
 }
-
-
