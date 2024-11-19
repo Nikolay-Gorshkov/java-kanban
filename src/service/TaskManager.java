@@ -46,4 +46,6 @@ public interface TaskManager {
     List<Subtask> getSubtasksByEpicId(int epicId);
 
     List<Task> getAllTasks();
+
+    List<Task> getPrioritizedTasks(); // Новый метод для получения задач по приоритету
 }
