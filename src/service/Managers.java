@@ -3,8 +3,12 @@ package service;
 import java.io.File;
 
 public class Managers {
+    public static FileBackedTaskManager getFileBackedDefault() {
+        return new FileBackedTaskManager(new File("tasks.json"));
+    }
+
     public static TaskManager getDefault() {
-        return new FileBackedTaskManager(new File("tasks.csv"));
+        return getFileBackedDefault();
     }
 
     public static HistoryManager getDefaultHistory() {
