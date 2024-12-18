@@ -29,43 +29,56 @@ public class FileBackedTaskManager implements TaskManager {
     }
 
     private void loadFromFile() {
-        if (file.exists()) {
-            try (FileReader reader = new FileReader(file)) {
-                Type dataType = new TypeToken<Map<String, List>>() {}.getType();
-                Map<String, List> data = gson.fromJson(reader, dataType);
+        if (!file.exists()) {
+            throw new ManagerSaveException("Файл для загрузки не найден");
+        }
 
-                if (data != null) {
-                    List<Epic> epics = castList(data.get("epics"), Epic.class);
-                    List<Task> tasks = castList(data.get("tasks"), Task.class);
-                    List<Subtask> subtasks = castList(data.get("subtasks"), Subtask.class);
+        try (FileReader reader = new FileReader(file)) {
+            Type dataType = new TypeToken<Map<String, List>>() {}.getType();
+            Map<String, List> data = gson.fromJson(reader, dataType);
 
-                    for (Epic epic : epics) {
-                        inMemoryManager.createEpic(epic);
-                        historyManager.add(epic);
-                    }
-
-                    for (Task task : tasks) {
-                        inMemoryManager.createTask(task);
-                        historyManager.add(task);
-                    }
-
-                    for (Subtask subtask : subtasks) {
-                        inMemoryManager.createSubtask(subtask);
-                        historyManager.add(subtask);
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (data == null) {
+                throw new ManagerSaveException("Ошибка при загрузке задач: данные отсутствуют или невалидны");
             }
+
+            List<Epic> epics = castList(data.get("epics"), Epic.class);
+            for (Epic epic : epics) {
+                inMemoryManager.createEpic(epic);
+                historyManager.add(epic);
+            }
+
+            List<Task> tasks = castList(data.get("tasks"), Task.class);
+            for (Task task : tasks) {
+                inMemoryManager.createTask(task);
+                historyManager.add(task);
+            }
+
+            List<Subtask> subtasks = castList(data.get("subtasks"), Subtask.class);
+            for (Subtask subtask : subtasks) {
+                Epic epic = inMemoryManager.getEpic(subtask.getEpicId());
+                if (epic == null) {
+                    throw new ManagerSaveException("Ошибка при загрузке задач: эпик для подзадачи не найден (id эпика = "
+                            + subtask.getEpicId() + ")");
+                }
+                inMemoryManager.createSubtask(subtask);
+                historyManager.add(subtask);
+            }
+
+        } catch (IOException e) {
+            throw new ManagerSaveException("Ошибка при загрузке задач", e);
+        } catch (Exception e) {
+            throw new ManagerSaveException("Ошибка при парсинге или загрузке данных", e);
         }
     }
 
     private <T> List<T> castList(List list, Class<T> clazz) {
         List<T> result = new ArrayList<>();
         if (list == null) return result;
+
         for (Object o : list) {
             result.add(gson.fromJson(gson.toJson(o), clazz));
         }
+
         return result;
     }
 
@@ -78,7 +91,7 @@ public class FileBackedTaskManager implements TaskManager {
 
             gson.toJson(data, writer);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ManagerSaveException("Ошибка при сохранении задач", e);
         }
     }
 
@@ -166,6 +179,8 @@ public class FileBackedTaskManager implements TaskManager {
 
     @Override
     public void createSubtask(Subtask subtask) {
+        // Здесь, если эпик не найден, InMemoryTaskManager бросит IllegalArgumentException,
+        // которую, если нужно, можно перехватить и перепробросить ManagerSaveException.
         inMemoryManager.createSubtask(subtask);
         historyManager.add(subtask);
         saveToFile();
