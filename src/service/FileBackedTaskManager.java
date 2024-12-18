@@ -34,7 +34,7 @@ public class FileBackedTaskManager implements TaskManager {
 
     private void loadFromFile() {
         if (!file.exists()) {
-            // Файл отсутствует – работаем с пустыми данными
+            // Файл отсутствует — работаем с пустыми данными
             return;
         }
 
@@ -42,47 +42,39 @@ public class FileBackedTaskManager implements TaskManager {
             Type dataType = new TypeToken<Map<String, List>>() {}.getType();
             Map<String, List> data = gson.fromJson(reader, dataType);
 
-            // Если data == null или отсутствуют ключи "epics", "tasks", "subtasks" - считаем файл невалидным
+            // Если data == null или отсутствуют ключи, необходимые для корректной загрузки
+            // считаем файл невалидным
             if (data == null || !data.containsKey("epics") || !data.containsKey("tasks") || !data.containsKey("subtasks")) {
                 throw new ManagerSaveException("Ошибка при загрузке задач");
             }
 
             // Загружаем эпики
             List<Epic> epics = castList(data.get("epics"), Epic.class);
-            if (epics != null) {
-                for (Epic epic : epics) {
-                    inMemoryManager.createEpic(epic);
-                    historyManager.add(epic);
-                }
+            for (Epic epic : epics) {
+                inMemoryManager.createEpic(epic);
+                historyManager.add(epic);
             }
 
             // Загружаем задачи
             List<Task> tasks = castList(data.get("tasks"), Task.class);
-            if (tasks != null) {
-                for (Task task : tasks) {
-                    inMemoryManager.createTask(task);
-                    historyManager.add(task);
-                }
+            for (Task task : tasks) {
+                inMemoryManager.createTask(task);
+                historyManager.add(task);
             }
 
             // Загружаем подзадачи
             List<Subtask> subtasks = castList(data.get("subtasks"), Subtask.class);
-            if (subtasks != null) {
-                for (Subtask subtask : subtasks) {
-                    Epic epic = inMemoryManager.getEpic(subtask.getEpicId());
-                    // Если эпик не найден – игнорируем подзадачу, не бросаем исключение
-                    if (epic != null) {
-                        inMemoryManager.createSubtask(subtask);
-                        historyManager.add(subtask);
-                    }
+            for (Subtask subtask : subtasks) {
+                Epic epic = inMemoryManager.getEpic(subtask.getEpicId());
+                // Если эпик не найден — игнорируем подзадачу
+                if (epic != null) {
+                    inMemoryManager.createSubtask(subtask);
+                    historyManager.add(subtask);
                 }
             }
 
-        } catch (JsonSyntaxException e) {
-            // Невалидный JSON
-            throw new ManagerSaveException("Ошибка при загрузке задач", e);
-        } catch (IOException e) {
-            // Проблемы чтения файла
+        } catch (JsonSyntaxException | IOException e) {
+            // Невалидный JSON или проблемы чтения файла — бросаем исключение
             throw new ManagerSaveException("Ошибка при загрузке задач", e);
         } catch (Exception e) {
             // Любая другая ошибка
