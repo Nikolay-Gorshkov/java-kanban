@@ -39,19 +39,16 @@ public class FileBackedTaskManager implements TaskManager {
                     List<Task> tasks = castList(data.get("tasks"), Task.class);
                     List<Subtask> subtasks = castList(data.get("subtasks"), Subtask.class);
 
-                    // Сначала эпики
                     for (Epic epic : epics) {
                         inMemoryManager.createEpic(epic);
                         historyManager.add(epic);
                     }
 
-                    // Затем задачи
                     for (Task task : tasks) {
                         inMemoryManager.createTask(task);
                         historyManager.add(task);
                     }
 
-                    // И только после этого подзадачи
                     for (Subtask subtask : subtasks) {
                         inMemoryManager.createSubtask(subtask);
                         historyManager.add(subtask);
