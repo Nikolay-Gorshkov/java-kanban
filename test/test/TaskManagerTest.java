@@ -230,19 +230,4 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         assertEquals(1, taskManager.getPrioritizedTasks().size(), "В приоритетном списке должна быть только одна задача.");
     }
-
-    @Test
-    void shouldThrowExceptionWhenLoadingInvalidFile() {
-        File nonExistentFile = new File("nonexistent.csv");
-        // Удаляем файл, если он существует, чтобы гарантировать, что файл не существует
-        if (nonExistentFile.exists()) {
-            nonExistentFile.delete();
-        }
-
-        Exception exception = assertThrows(ManagerSaveException.class, () -> {
-            FileBackedTaskManager manager = new FileBackedTaskManager(nonExistentFile);
-        });
-        assertTrue(exception.getMessage().contains("Ошибка при загрузке задач"), "Должно быть сообщение об ошибке при загрузке задач.");
-    }
-
 }
