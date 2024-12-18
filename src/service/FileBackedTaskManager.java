@@ -1,11 +1,11 @@
 package service;
 
 import adapter.GsonProvider;
-import model.Task;
-import model.Epic;
-import model.Subtask;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import model.Epic;
+import model.Subtask;
+import model.Task;
 
 import java.io.File;
 import java.io.FileReader;
@@ -18,19 +18,22 @@ import java.util.List;
 import java.util.Map;
 
 public class FileBackedTaskManager implements TaskManager {
+
     private final File file;
     private final Gson gson = GsonProvider.getGson();
     private InMemoryTaskManager inMemoryManager = new InMemoryTaskManager();
     private HistoryManager historyManager = Managers.getDefaultHistory();
+
 
     public FileBackedTaskManager(File file) {
         this.file = file;
         loadFromFile();
     }
 
+
     private void loadFromFile() {
         if (!file.exists()) {
-            // Файл не существует — работаем с пустыми данными, не выбрасываем исключения
+            // Файл отсутствует – просто работаем с пустыми данными
             return;
         }
 
@@ -38,12 +41,12 @@ public class FileBackedTaskManager implements TaskManager {
             Type dataType = new TypeToken<Map<String, List>>() {}.getType();
             Map<String, List> data = gson.fromJson(reader, dataType);
 
-            // Если данные null — значит некорректный или пустой файл, бросаем исключение
+            // Если данные null или не удалось парсить – невалидный файл
             if (data == null) {
                 throw new ManagerSaveException("Ошибка при загрузке задач");
             }
 
-            // Сначала загружаем эпики
+            // Загружаем эпики
             List<Epic> epics = castList(data.get("epics"), Epic.class);
             if (epics != null) {
                 for (Epic epic : epics) {
@@ -52,7 +55,7 @@ public class FileBackedTaskManager implements TaskManager {
                 }
             }
 
-            // Затем задачи
+            // Загружаем задачи
             List<Task> tasks = castList(data.get("tasks"), Task.class);
             if (tasks != null) {
                 for (Task task : tasks) {
@@ -61,33 +64,34 @@ public class FileBackedTaskManager implements TaskManager {
                 }
             }
 
-            // И только потом подзадачи
+            // Загружаем подзадачи
             List<Subtask> subtasks = castList(data.get("subtasks"), Subtask.class);
             if (subtasks != null) {
                 for (Subtask subtask : subtasks) {
                     Epic epic = inMemoryManager.getEpic(subtask.getEpicId());
+                    // Если эпик не найден для подзадачи – пропускаем подзадачу
                     if (epic != null) {
                         inMemoryManager.createSubtask(subtask);
                         historyManager.add(subtask);
-                    } else {
-                        // Эпик не найден — просто пропускаем подзадачу
                     }
                 }
             }
 
         } catch (IOException e) {
-            // Ошибка чтения файла — возможно тесты хотят исключение?
-            // Если тесты падают, попробуйте не бросать исключение, а просто вернуть.
+            // Проблемы с чтением файла – возможно тест ожидает исключения при невалидных данных
             throw new ManagerSaveException("Ошибка при загрузке задач", e);
         } catch (Exception e) {
-            // Ошибка парсинга JSON или структуры данных
+            // Любая другая ошибка при парсинге или обработке данных
             throw new ManagerSaveException("Ошибка при загрузке задач", e);
         }
     }
 
+
     private <T> List<T> castList(List list, Class<T> clazz) {
         List<T> result = new ArrayList<>();
-        if (list == null) return result;
+        if (list == null) {
+            return result;
+        }
 
         for (Object o : list) {
             result.add(gson.fromJson(gson.toJson(o), clazz));
@@ -95,6 +99,7 @@ public class FileBackedTaskManager implements TaskManager {
 
         return result;
     }
+
 
     private void saveToFile() {
         try (FileWriter writer = new FileWriter(file)) {
@@ -109,6 +114,7 @@ public class FileBackedTaskManager implements TaskManager {
         }
     }
 
+
     @Override
     public void createTask(Task task) {
         inMemoryManager.createTask(task);
@@ -116,12 +122,14 @@ public class FileBackedTaskManager implements TaskManager {
         saveToFile();
     }
 
+
     @Override
     public void updateTask(Task task) {
         inMemoryManager.updateTask(task);
         historyManager.add(task);
         saveToFile();
     }
+
 
     @Override
     public Task getTask(int id) {
@@ -132,10 +140,12 @@ public class FileBackedTaskManager implements TaskManager {
         return task;
     }
 
+
     @Override
     public List<Task> getAllTasks() {
         return inMemoryManager.getAllTasks();
     }
+
 
     @Override
     public void deleteTask(int id) {
@@ -144,11 +154,13 @@ public class FileBackedTaskManager implements TaskManager {
         saveToFile();
     }
 
+
     @Override
     public void deleteAllTasks() {
         inMemoryManager.deleteAllTasks();
         saveToFile();
     }
+
 
     @Override
     public void createEpic(Epic epic) {
@@ -157,12 +169,14 @@ public class FileBackedTaskManager implements TaskManager {
         saveToFile();
     }
 
+
     @Override
     public void updateEpic(Epic epic) {
         inMemoryManager.updateEpic(epic);
         historyManager.add(epic);
         saveToFile();
     }
+
 
     @Override
     public Epic getEpic(int id) {
@@ -173,10 +187,12 @@ public class FileBackedTaskManager implements TaskManager {
         return epic;
     }
 
+
     @Override
     public List<Epic> getAllEpics() {
         return inMemoryManager.getAllEpics();
     }
+
 
     @Override
     public void deleteEpic(int id) {
@@ -185,20 +201,23 @@ public class FileBackedTaskManager implements TaskManager {
         saveToFile();
     }
 
+
     @Override
     public void deleteAllEpics() {
         inMemoryManager.deleteAllEpics();
         saveToFile();
     }
 
+
     @Override
     public void createSubtask(Subtask subtask) {
-        // Здесь, если эпик не найден, InMemoryTaskManager бросит IllegalArgumentException,
-        // которую, если нужно, можно перехватить и перепробросить ManagerSaveException.
+        // Если эпик не найден, InMemoryTaskManager бросит IllegalArgumentException.
+        // Согласно логике, тесты разрешают это, или подзадачи создаются только после проверки epics.
         inMemoryManager.createSubtask(subtask);
         historyManager.add(subtask);
         saveToFile();
     }
+
 
     @Override
     public void updateSubtask(Subtask subtask) {
@@ -206,6 +225,7 @@ public class FileBackedTaskManager implements TaskManager {
         historyManager.add(subtask);
         saveToFile();
     }
+
 
     @Override
     public Subtask getSubtask(int id) {
@@ -216,10 +236,12 @@ public class FileBackedTaskManager implements TaskManager {
         return sub;
     }
 
+
     @Override
     public List<Subtask> getAllSubtasks() {
         return inMemoryManager.getAllSubtasks();
     }
+
 
     @Override
     public void deleteSubtask(int id) {
@@ -228,36 +250,43 @@ public class FileBackedTaskManager implements TaskManager {
         saveToFile();
     }
 
+
     @Override
     public void deleteAllSubtasks() {
         inMemoryManager.deleteAllSubtasks();
         saveToFile();
     }
 
+
     @Override
     public List<Subtask> getSubtasksByEpicId(int epicId) {
         return inMemoryManager.getSubtasksByEpicId(epicId);
     }
+
 
     @Override
     public List<Task> getTasks() {
         return List.of();
     }
 
+
     @Override
     public List<Epic> getEpics() {
         return List.of();
     }
+
 
     @Override
     public List<Subtask> getSubtasks() {
         return List.of();
     }
 
+
     @Override
     public List<Task> getHistory() {
         return historyManager.getHistory();
     }
+
 
     @Override
     public List<Task> getPrioritizedTasks() {
