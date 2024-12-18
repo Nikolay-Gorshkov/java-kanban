@@ -68,6 +68,7 @@ public class FileBackedTaskManager implements TaskManager {
         }
         return result;
     }
+
     private void saveToFile() {
         try (FileWriter writer = new FileWriter(file)) {
             Map<String, Object> data = new HashMap<>();
