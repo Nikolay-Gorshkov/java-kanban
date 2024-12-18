@@ -2,7 +2,7 @@ package http.handler;
 
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
-import Adapter.GsonProvider;
+import adapter.GsonProvider;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 

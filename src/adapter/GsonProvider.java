@@ -1,4 +1,4 @@
-package Adapter;
+package adapter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

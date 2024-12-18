@@ -1,7 +1,7 @@
 // src/test/java/test/HttpTaskManagerTasksTest.java
 package test;
 
-import Adapter.GsonProvider;
+import adapter.GsonProvider;
 import model.Status;
 import model.Task;
 import service.FileBackedTaskManager;

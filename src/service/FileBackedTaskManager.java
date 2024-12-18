@@ -1,6 +1,6 @@
 package service;
 
-import Adapter.GsonProvider;
+import adapter.GsonProvider;
 import model.Task;
 import model.Epic;
 import model.Subtask;
