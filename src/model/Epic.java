@@ -10,7 +10,6 @@ public class Epic extends Task {
     private List<Subtask> subtasks = new ArrayList<>();
     private LocalDateTime endTime;
 
-    // Конструкторы
     public Epic(String title, String description) {
         super(title, description);
     }
@@ -23,13 +22,12 @@ public class Epic extends Task {
         super(id, title, description, status);
     }
 
-    // Геттеры и сеттеры для endTime
+
     @Override
     public LocalDateTime getEndTime() {
         return endTime;
     }
 
-    // Остальные методы
 
     public List<Subtask> getSubtasks() {
         return subtasks;
@@ -38,7 +36,7 @@ public class Epic extends Task {
     public void addSubtask(Subtask subtask) {
         subtasks.add(subtask);
         updateStatus();
-        recalculateTimeAttributes(); // Пересчитываем время после добавления подзадачи
+        recalculateTimeAttributes();
     }
 
     public void updateSubtask(Subtask subtask) {
@@ -49,13 +47,13 @@ public class Epic extends Task {
             }
         }
         updateStatus();
-        recalculateTimeAttributes(); // Пересчитываем время после обновления подзадачи
+        recalculateTimeAttributes();
     }
 
     public void removeSubtask(int subtaskId) {
         subtasks.removeIf(subtask -> subtask.getId() == subtaskId);
         updateStatus();
-        recalculateTimeAttributes(); // Пересчитываем время после удаления подзадачи
+        recalculateTimeAttributes();
     }
 
     public void clearSubtasks() {
@@ -74,7 +72,6 @@ public class Epic extends Task {
         return startTime;
     }
 
-    // Метод для пересчёта временных атрибутов
     public void recalculateTimeAttributes() {
         this.startTime = calculateStartTime();
         this.endTime = calculateEndTime();
@@ -104,7 +101,6 @@ public class Epic extends Task {
                 .reduce(Duration.ZERO, Duration::plus);
     }
 
-    // Метод обновления статуса эпика
     public void updateStatus() {
         if (subtasks.isEmpty()) {
             setStatus(Status.NEW);

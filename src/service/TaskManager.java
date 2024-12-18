@@ -1,23 +1,58 @@
 package service;
 
+import model.Task;
 import model.Epic;
 import model.Subtask;
-import model.Task;
 
 import java.util.List;
 
 public interface TaskManager {
-    void addTask(Task task);
+
+    // Задачи
+
+    void createTask(Task task);
+
+    void updateTask(Task task);
 
     Task getTask(int id);
 
-    void addEpic(Epic epic);
+    List<Task> getAllTasks();
+
+    void deleteTask(int id);
+
+    void deleteAllTasks();
+
+    // Эпики
+
+    void createEpic(Epic epic);
+
+    void updateEpic(Epic epic);
 
     Epic getEpic(int id);
 
-    void addSubtask(Subtask subtask);
+    List<Epic> getAllEpics();
+
+    void deleteEpic(int id);
+
+    void deleteAllEpics();
+
+    // Подзадачи
+
+    void createSubtask(Subtask subtask);
+
+    void updateSubtask(Subtask subtask);
 
     Subtask getSubtask(int id);
+
+    List<Subtask> getAllSubtasks();
+
+    void deleteSubtask(int id);
+
+    void deleteAllSubtasks();
+
+    // Дополнительные методы
+
+    List<Subtask> getSubtasksByEpicId(int epicId);
 
     List<Task> getTasks();
 
@@ -27,25 +62,5 @@ public interface TaskManager {
 
     List<Task> getHistory();
 
-    void deleteTask(int id);
-
-    void deleteEpic(int id);
-
-    void deleteSubtask(int id);
-
-    void deleteAllTasks();
-
-    void deleteAllEpics();
-
-    void deleteAllSubtasks();
-
-    List<Epic> getAllEpics();
-
-    List<Subtask> getAllSubtasks();
-
-    List<Subtask> getSubtasksByEpicId(int epicId);
-
-    List<Task> getAllTasks();
-
-    List<Task> getPrioritizedTasks(); // Новый метод для получения задач по приоритету
+    List<Task> getPrioritizedTasks();
 }
