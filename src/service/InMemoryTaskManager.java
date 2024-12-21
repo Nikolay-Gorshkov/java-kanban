@@ -38,7 +38,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void addTask(Task task) {
+    public void createTask(Task task) {
         if (isTaskTimeOverlap(task)) {
             throw new IllegalArgumentException("Задача пересекается по времени с существующей задачей");
         }
@@ -60,7 +60,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void addEpic(Epic epic) {
+    public void createEpic(Epic epic) {
         int id = generateId();
         epic.setId(id);
         epics.put(id, epic);
@@ -76,7 +76,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void addSubtask(Subtask subtask) {
+    public void createSubtask(Subtask subtask) {
         if (isTaskTimeOverlap(subtask)) {
             throw new IllegalArgumentException("Подзадача пересекается по времени с существующей задачей");
         }
