@@ -3,15 +3,17 @@ package http.handler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import model.Subtask;
-import service.FileBackedTaskManager;
+import service.TaskManager;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
-    private final FileBackedTaskManager manager;
+    private final TaskManager manager;
 
-    public SubtasksHandler(FileBackedTaskManager manager) {
+    public SubtasksHandler(TaskManager manager) {
         this.manager = manager;
     }
 
@@ -51,7 +53,10 @@ public class SubtasksHandler extends BaseHttpHandler implements HttpHandler {
                         if (subtask.getId() == 0) {
                             try {
                                 manager.createSubtask(subtask);
-                                sendCreated(exchange);
+                                Map<String, Object> responseData = new HashMap<>();
+                                responseData.put("message", "Подзадача создана");
+                                responseData.put("id", subtask.getId());
+                                sendResponseWithJson(exchange, 201, GSON.toJson(responseData));
                             } catch (IllegalArgumentException e) {
                                 sendHasInteractions(exchange);
                             }

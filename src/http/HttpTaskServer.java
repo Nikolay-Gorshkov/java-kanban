@@ -2,16 +2,16 @@ package http;
 
 import com.sun.net.httpserver.HttpServer;
 import http.handler.*;
-import service.FileBackedTaskManager;
+import service.TaskManager;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
 public class HttpTaskServer {
     private final HttpServer server;
-    private final FileBackedTaskManager manager;
+    private final TaskManager manager;
 
-    public HttpTaskServer(FileBackedTaskManager manager, int port) throws IOException {
+    public HttpTaskServer(TaskManager manager, int port) throws IOException {
         this.manager = manager;
         server = HttpServer.create(new InetSocketAddress(port), 0);
         initContext();

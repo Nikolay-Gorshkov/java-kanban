@@ -3,15 +3,17 @@ package http.handler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import model.Task;
-import service.FileBackedTaskManager;
+import service.TaskManager;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TasksHandler extends BaseHttpHandler implements HttpHandler {
-    private final FileBackedTaskManager manager;
+    private final TaskManager manager;
 
-    public TasksHandler(FileBackedTaskManager manager) {
+    public TasksHandler(TaskManager manager) {
         this.manager = manager;
     }
 
@@ -50,7 +52,10 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
                     if (task.getId() == 0) {
                         try {
                             manager.createTask(task);
-                            sendCreated(exchange);
+                            Map<String, Object> responseData = new HashMap<>();
+                            responseData.put("message", "Задача создана");
+                            responseData.put("id", task.getId());
+                            sendResponseWithJson(exchange, 201, GSON.toJson(responseData));
                         } catch (IllegalArgumentException e) {
                             sendHasInteractions(exchange);
                         }

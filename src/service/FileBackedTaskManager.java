@@ -34,7 +34,10 @@ public class FileBackedTaskManager implements TaskManager {
 
     private void loadFromFile() {
         if (!file.exists()) {
-            // Файл отсутствует — работаем с пустыми данными
+            return;
+        }
+
+        if (file.length() == 0) {
             return;
         }
 
@@ -42,31 +45,29 @@ public class FileBackedTaskManager implements TaskManager {
             Type dataType = new TypeToken<Map<String, List>>() {}.getType();
             Map<String, List> data = gson.fromJson(reader, dataType);
 
-            // Если data == null или отсутствуют ключи, необходимые для корректной загрузки
-            // считаем файл невалидным
-            if (data == null || !data.containsKey("epics") || !data.containsKey("tasks") || !data.containsKey("subtasks")) {
-                throw new ManagerSaveException("Ошибка при загрузке задач");
+            if (data == null) {
+                return;
             }
 
-            // Загружаем эпики
+            data.putIfAbsent("epics", new ArrayList<>());
+            data.putIfAbsent("tasks", new ArrayList<>());
+            data.putIfAbsent("subtasks", new ArrayList<>());
+
             List<Epic> epics = castList(data.get("epics"), Epic.class);
             for (Epic epic : epics) {
                 inMemoryManager.createEpic(epic);
                 historyManager.add(epic);
             }
 
-            // Загружаем задачи
             List<Task> tasks = castList(data.get("tasks"), Task.class);
             for (Task task : tasks) {
                 inMemoryManager.createTask(task);
                 historyManager.add(task);
             }
 
-            // Загружаем подзадачи
             List<Subtask> subtasks = castList(data.get("subtasks"), Subtask.class);
             for (Subtask subtask : subtasks) {
                 Epic epic = inMemoryManager.getEpic(subtask.getEpicId());
-                // Если эпик не найден — игнорируем подзадачу
                 if (epic != null) {
                     inMemoryManager.createSubtask(subtask);
                     historyManager.add(subtask);
@@ -74,10 +75,8 @@ public class FileBackedTaskManager implements TaskManager {
             }
 
         } catch (JsonSyntaxException | IOException e) {
-            // Невалидный JSON или проблемы чтения файла — бросаем исключение
             throw new ManagerSaveException("Ошибка при загрузке задач", e);
         } catch (Exception e) {
-            // Любая другая ошибка
             throw new ManagerSaveException("Ошибка при загрузке задач", e);
         }
     }

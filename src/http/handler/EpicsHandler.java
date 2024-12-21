@@ -4,15 +4,17 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import model.Epic;
 import model.Subtask;
-import service.FileBackedTaskManager;
+import service.TaskManager;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
-    private final FileBackedTaskManager manager;
+    private final TaskManager manager;
 
-    public EpicsHandler(FileBackedTaskManager manager) {
+    public EpicsHandler(TaskManager manager) {
         this.manager = manager;
     }
 
@@ -25,11 +27,9 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
 
             if ("GET".equals(method)) {
                 if (pathSegments.length == 2) {
-                    // GET /epics
                     List<Epic> epics = manager.getAllEpics();
                     sendResponseWithJson(exchange, 200, GSON.toJson(epics));
                 } else if (pathSegments.length == 3) {
-                    // GET /epics/{id}
                     int id = Integer.parseInt(pathSegments[2]);
                     Epic epic = manager.getEpic(id);
                     if (epic != null) {
@@ -38,7 +38,6 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                         sendNotFound(exchange);
                     }
                 } else if (pathSegments.length == 4 && "subtasks".equals(pathSegments[3])) {
-                    // GET /epics/{id}/subtasks
                     int epicId = Integer.parseInt(pathSegments[2]);
                     Epic epic = manager.getEpic(epicId);
                     if (epic != null) {
@@ -59,11 +58,12 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
                         return;
                     }
                     if (epic.getId() == 0) {
-                        // Создание нового эпика
                         manager.createEpic(epic);
-                        sendCreated(exchange);
+                        Map<String, Object> responseData = new HashMap<>();
+                        responseData.put("message", "Эпик создан");
+                        responseData.put("id", epic.getId());
+                        sendResponseWithJson(exchange, 201, GSON.toJson(responseData));
                     } else {
-                        // Обновление
                         if (manager.getEpic(epic.getId()) != null) {
                             manager.updateEpic(epic);
                             sendResponseWithJson(exchange, 200, "Эпик обновлен");

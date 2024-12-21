@@ -3,15 +3,15 @@ package http.handler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import model.Task;
-import service.FileBackedTaskManager;
+import service.TaskManager;
 
 import java.io.IOException;
 import java.util.List;
 
 public class PrioritizedTasksHandler extends BaseHttpHandler implements HttpHandler {
-    private final FileBackedTaskManager manager;
+    private final TaskManager manager;
 
-    public PrioritizedTasksHandler(FileBackedTaskManager manager) {
+    public PrioritizedTasksHandler(TaskManager manager) {
         this.manager = manager;
     }
 
@@ -20,7 +20,6 @@ public class PrioritizedTasksHandler extends BaseHttpHandler implements HttpHand
         try {
             String method = exchange.getRequestMethod();
             if ("GET".equals(method)) {
-                // GET /prioritized
                 List<Task> prioritizedTasks = manager.getPrioritizedTasks();
                 sendResponseWithJson(exchange, 200, GSON.toJson(prioritizedTasks));
             } else {
